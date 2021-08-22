@@ -10,7 +10,7 @@ This is code for konkuk buildings augmentation with pascal voc format labels.
 - initial setting: you need to set 3 parameters. 
   - building_number is images and labels data folder number. 
   - img_folder_name is parent folder containing building_number folders. 
-  - aug_count is output data number.  
+  - aug_count is output data count.  
 ```Python 
 building_number=1 
 img_folder_name='aug_0820'
