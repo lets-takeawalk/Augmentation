@@ -38,7 +38,7 @@ for aug_dir in directories:
             info=''
             with open(txt_file, 'r') as f:
                 info=f.readline().split()
-                if info=='':
+                if info!='':
                     info[0]=label_num
                 else:
                     print("Empty txt file: ",text_file)
