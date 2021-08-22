@@ -40,8 +40,9 @@ for aug_dir in directories:
                 info=f.readline().split()
                 if info=='':
                     info[0]=label_num
-                else: 
+                else:
                     print("Empty txt file: ",text_file)
+                    continue
 
             with open(txt_file, 'w') as f:
                 change_str=' '.join(info)
