@@ -7,7 +7,10 @@ This is code for konkuk buildings augmentation with pascal voc format labels.
 ### augmentation_pascal_0820.py
 - augmentaion main code
 - applid key parameters: rain, Snowflakes, Clouds, FastSnowyLandscape, multiplyBritness...
-- initial setting: you need to set 3 parameters. building_number is images and labels data folder number. img_folder_name is parent folder containing building_number folders. aug_count is output data number.  
+- initial setting: you need to set 3 parameters. 
+  - building_number is images and labels data folder number. 
+  - img_folder_name is parent folder containing building_number folders. 
+  - aug_count is output data number.  
 ```Python 
 building_number=1 
 img_folder_name='aug_0820'
