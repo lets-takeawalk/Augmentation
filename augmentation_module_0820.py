@@ -133,7 +133,7 @@ def check_original_pixel_coordinate(pixel_txt_path):
         with open(pixel_txt_path,'r') as f:
             #cls_num,xtop,ytop,xbottom,ybottom
             origin_bbox=list(map(int,f.read().split()))
-            print(origin_bbox)
+
     except:
         print('[FAIL]pixel txt file is not open'+pixel_txt_path)
 
@@ -149,7 +149,6 @@ def check_original_pixel_coordinate(pixel_txt_path):
             with open(pixel_txt_path,'w') as f:
                 fix_bbox=' '.join(map(str,fix_bbox))
                 f.write(fix_bbox)
-                print(fix_bbox)
         except:
             print('[FAIL]change original pixel txt file: '+pixel_txt_path)
             with open(pixel_txt_path,'w') as f:
@@ -176,23 +175,43 @@ def check_aug_pixel_coordinate(aug_bbox):
     xbottom=aug_bbox[0].x2
     ybottom=aug_bbox[0].y2
 
-    if xtop<0: xtop=0
-    if ytop<0: ytop=0
-    if xbottom>415: xbottom=415
-    if ybottom>415: ybottom=415
+    if xtop<0: xtop=0.0
+    if ytop<0: ytop=0.0
+    if xbottom>415: xbottom=415.0
+    if ybottom>415: ybottom=415.0
     if xtop>xbottom: xtop,xbottom=xbottom,xtop
     if ytop>ybottom: ytop,ybottom=ybottom,ytop
 
-    return [xtop,ytop,xbottom,ybottom]
+    bbox=[xtop,ytop,xbottom,ybottom]
+
+    print(bbox)
+    return bbox
 
 def pixel_to_yolo(cls_num,bbox_aug):
+    dw=1./IMAGE_SIZE
+    dh=1./IMAGE_SIZE
+    xcenter=(bbox_aug[0]+bbox_aug[2])/2.0-1
+    ycenter=(bbox_aug[1]+bbox_aug[3])/2.0-1
     width=bbox_aug[2]-bbox_aug[1]#xbottom-xtop
     height=bbox_aug[3]-bbox_aug[0]#ybottom-ytop
+    xcenter*=dw
+    width*=dw
+    ycenter*=dh
+    height*=dh
 
-    xcenter=(bbox_aug[0]+width/2)/IMAGE_SIZE
-    ycenter=(bbox_aug[1]+height/2)/IMAGE_SIZE
-    width=width/IMAGE_SIZE
-    height=height/IMAGE_SIZE
+    #(0.0 to 1.0]
+    if xcenter+(width/2)>1.0:
+        temp=2*(xcenter+(width/2)-1.0)+0.0001
+        width-=temp
+    if ycenter+(height/2)>1.0:
+        temp=2*(ycenter+(height/2)-1.0)+0.0001
+        height-=temp
+    if xcenter-(width/2)<=0.0:
+        temp=2*abs(xcenter-(width/2))+0.0001
+        width-=temp
+    if ycenter-(height/2)<=0.0:
+        temp=2*abs(ycenter-(height/2))+0.0001
+        height-=temp
 
     return [cls_num,xcenter,ycenter,width,height]
 
@@ -201,5 +220,6 @@ def save_label_pixel_to_yolo(yolo_format,save_path):
     try:
         with open(save_path+'.txt','w') as f:
             f.write(yolo_str)
+            print(save_path,yolo_str)
     except:
         print('[FAIL]writing yolo format coordinate at '+save_path+', yolo_str: '+yolo_str)

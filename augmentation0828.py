@@ -41,9 +41,9 @@ seq = iaa.Sequential(
         iaa.Sometimes(0.5,[
         iaa.Affine(scale=(0.5,1.5)),
         ]),#zoom in,out
-        iaa.Sometimes(0.3,[
+        iaa.Sometimes(0.2,[
         iaa.Affine(
-            scale={"x": (0.7, 1.4), "y": (0.7, 1.4)},
+            scale={"x": (0.7, 1.3), "y": (0.7, 1.3)},
             translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
             rotate=(-45, 45),
             shear=(-16, 16),
@@ -122,17 +122,18 @@ while cnt<aug_count:
         bbox=[ia.BoundingBox(x1=xtop,y1=ytop,x2=xbottom,y2=ybottom)]
         try:
             img_aug,bbox_aug=seq(images=images,bounding_boxes=bbox)
+            print(bbox_aug)
         except:
             continue
 
         checked_bbox_aug=am.check_aug_pixel_coordinate(bbox_aug)
-        yolo_format=am.pixel_to_yolo(cls_num,checked_bbox_aug)
+        yolo_format=am.pixel_to_yolo(cls_num,list(map(float,checked_bbox_aug)))
         #욜로형식범위 벗어날경우
         save_name=file_name+'_'+str(cnt)
         save_path=AUG_AFT_IMG_FOLDER+'/'+save_name
-        
+
+        # am.save_label_xml_format(checked_bbox_aug,save_name,)
         am.save_aug_img(img_aug,save_path)
         am.save_label_pixel_to_yolo(yolo_format,save_path)
-        # am.save_label_xml_format(checked_box,save_name+'.jpg',path['xml_path'],save_path)
+
         cnt+=1
-    break
