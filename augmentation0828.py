@@ -10,9 +10,9 @@ from PIL import Image
 import imgaug.augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 ######################################################
-building_number=30#건물번호(폴더번호)(라벨번호아님)
-img_folder_name='aug_0820'#씨드이미지폴더이름(img_folder_name/1/ -.jpg -.txt)
-aug_count=1000#어그멘테이션 갯수 설정
+building_number=0#라벨번호
+img_folder_name='image'#씨드이미지폴더이름(image/0/ -.jpg -.txt)
+aug_count=30#어그멘테이션 갯수 설정
 ######################################################
 sometimes = lambda aug: iaa.Sometimes(0.5, aug)
 seq = iaa.Sequential(
@@ -24,7 +24,6 @@ seq = iaa.Sequential(
         iaa.Sometimes(0.3, [
             iaa.MultiplyBrightness((0.25, 1.0))
         ]),
-
         iaa.Sometimes(0.2,[
         iaa.Snowflakes(flake_size=(0.1, 0.4), speed=(0.01, 0.05)),
         iaa.Clouds((5,15))
@@ -39,9 +38,12 @@ seq = iaa.Sequential(
             pad_mode=ia.ALL,
             pad_cval=(0, 255)
         )]),
-        iaa.Sometimes(0.2,[
+        iaa.Sometimes(0.5,[
+        iaa.Affine(scale=(0.5,1.5)),
+        ]),#zoom in,out
+        iaa.Sometimes(0.3,[
         iaa.Affine(
-            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+            scale={"x": (0.7, 1.4), "y": (0.7, 1.4)},
             translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
             rotate=(-45, 45),
             shear=(-16, 16),
@@ -96,13 +98,14 @@ am.create_folder(AUG_AFT_IMG_FOLDER)
 
 #make jpg,txt path info dictionary
 jpg_list=glob(AUG_BFR_IMG_FOLDER+'/*.jpg')
+# img_list=glob()#jpg,jpeg,png
 file_path_list=[f.rstrip('.jpg') for f in jpg_list]
 file_name_list=[]
 file_dic={} #{filename: {jpg_path: '', xml_path: ''}}
 for file_path in file_path_list:
     file_name=file_path.split(str(building_number)+'\\')[1]
     file_name_list.append(file_name)
-    file_dic[file_name]={'jpg_path':file_path+'.jpg','xml_path':file_path+'.xml'}
+    file_dic[file_name]={'jpg_path':file_path+'.jpg','txt_path':file_path+'.txt'}
 
 # json_str=json.dumps(file_dic,indent=4)
 # print(json_str)
@@ -112,21 +115,24 @@ while cnt<aug_count:
     for file_name, path in file_dic.items():
         if cnt>aug_count:exit(0)
         #check original xml and edit it
-        am.check_orginal_Pixel(path['xml_path'])
+        am.check_original_pixel_coordinate(path['txt_path'])
 
         images=am.load_images_from_folder(path['jpg_path'])
-        xmin,ymin,xmax,ymax=am.loadXML(path['xml_path'])
-        bbox=[ia.BoundingBox(x1=xmin,y1=ymin,x2=xmax,y2=ymax)]
+        cls_num,xtop,ytop,xbottom,ybottom=am.load_pixel_coordinate(path['txt_path'])
+        bbox=[ia.BoundingBox(x1=xtop,y1=ytop,x2=xbottom,y2=ybottom)]
         try:
             img_aug,bbox_aug=seq(images=images,bounding_boxes=bbox)
         except:
             continue
 
-        checked_box=am.check_fix_Pixel(bbox_aug)
-
+        checked_bbox_aug=am.check_aug_pixel_coordinate(bbox_aug)
+        yolo_format=am.pixel_to_yolo(cls_num,checked_bbox_aug)
+        #욜로형식범위 벗어날경우
         save_name=file_name+'_'+str(cnt)
         save_path=AUG_AFT_IMG_FOLDER+'/'+save_name
-
+        
         am.save_aug_img(img_aug,save_path)
-        am.save_label_xml_format(checked_box,save_name+'.jpg',path['xml_path'],save_path)
+        am.save_label_pixel_to_yolo(yolo_format,save_path)
+        # am.save_label_xml_format(checked_box,save_name+'.jpg',path['xml_path'],save_path)
         cnt+=1
+    break

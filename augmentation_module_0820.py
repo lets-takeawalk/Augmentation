@@ -1,13 +1,16 @@
 import sys
 import os
 import cv2
+import copy
 import numpy as np
 import imgaug as ia
 import xml.etree.ElementTree as Et
 from xml.etree.ElementTree import Element, SubElement, ElementTree
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
-def createFolder(directory):#폴더생성
+IMAGE_SIZE=416
+
+def create_folder(directory):#폴더생성
     try:
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -45,7 +48,7 @@ def save_aug_img(img,save_path):#이미지배열,파일이름
         cv2.imwrite(save_path,n)
     print('save aug image: ',save_path)
 
-def save_aug_xml(bbox,save_name,xml_path,save_path):
+def save_label_xml_format(bbox,save_name,xml_path,save_path):
     save_path+='.xml'
 
     xml=open(xml_path,'rt')
@@ -58,8 +61,6 @@ def save_aug_xml(bbox,save_name,xml_path,save_path):
 
     tg_name.text=save_name
     tg_path.text=save_name
-
-
 
     bndbox = tg_objs.find("bndbox")
     bndbox.find("xmin").text=str(int(bbox[0]))
@@ -124,3 +125,81 @@ def check_orginal_Pixel(xml_path):#원래 이미지의 바운딩박스 범위 �
     tree.write(xml_path)
     if edit_cnt:
         print('edit original xml: ',xml_path)
+
+
+#0829
+def check_original_pixel_coordinate(pixel_txt_path):
+    try:
+        with open(pixel_txt_path,'r') as f:
+            #cls_num,xtop,ytop,xbottom,ybottom
+            origin_bbox=list(map(int,f.read().split()))
+            print(origin_bbox)
+    except:
+        print('[FAIL]pixel txt file is not open'+pixel_txt_path)
+
+    #if pixel coordinate are out of range in [0,415], fix it
+    fix_bbox=copy.deepcopy(origin_bbox)
+    if 0>origin_bbox[1]: fix_bbox[1]=0
+    if 0>origin_bbox[2]: fix_bbox[2]=0
+    if 415<origin_bbox[3]: fix_bbox[3]=415
+    if 415<origin_bbox[4]: fix_bbox[4]=415
+
+    if fix_bbox!=origin_bbox:
+        try:
+            with open(pixel_txt_path,'w') as f:
+                fix_bbox=' '.join(map(str,fix_bbox))
+                f.write(fix_bbox)
+                print(fix_bbox)
+        except:
+            print('[FAIL]change original pixel txt file: '+pixel_txt_path)
+            with open(pixel_txt_path,'w') as f:
+                f.write(origin_bbox)
+
+def load_pixel_coordinate(pixel_txt_path):
+    try:
+        with open(pixel_txt_path,'r') as f:
+            #cls_num,xtop,ytop,xbottom,ybottom
+            bbox=list(map(int,f.read().split()))
+            cls_num=bbox[0]
+            xtop=bbox[1]
+            ytop=bbox[2]
+            xbottom=bbox[3]
+            ybottom=bbox[4]
+    except:
+        print('[FAIL]pixel txt file is not open'+pixel_txt_path)
+
+    return cls_num,xtop,ytop,xbottom,ybottom
+
+def check_aug_pixel_coordinate(aug_bbox):
+    xtop=aug_bbox[0].x1
+    ytop=aug_bbox[0].y1
+    xbottom=aug_bbox[0].x2
+    ybottom=aug_bbox[0].y2
+
+    if xtop<0: xtop=0
+    if ytop<0: ytop=0
+    if xbottom>415: xbottom=415
+    if ybottom>415: ybottom=415
+    if xtop>xbottom: xtop,xbottom=xbottom,xtop
+    if ytop>ybottom: ytop,ybottom=ybottom,ytop
+
+    return [xtop,ytop,xbottom,ybottom]
+
+def pixel_to_yolo(cls_num,bbox_aug):
+    width=bbox_aug[2]-bbox_aug[1]#xbottom-xtop
+    height=bbox_aug[3]-bbox_aug[0]#ybottom-ytop
+
+    xcenter=(bbox_aug[0]+width/2)/IMAGE_SIZE
+    ycenter=(bbox_aug[1]+height/2)/IMAGE_SIZE
+    width=width/IMAGE_SIZE
+    height=height/IMAGE_SIZE
+
+    return [cls_num,xcenter,ycenter,width,height]
+
+def save_label_pixel_to_yolo(yolo_format,save_path):
+    yolo_str=' '.join(map(str,yolo_format))
+    try:
+        with open(save_path+'.txt','w') as f:
+            f.write(yolo_str)
+    except:
+        print('[FAIL]writing yolo format coordinate at '+save_path+', yolo_str: '+yolo_str)
