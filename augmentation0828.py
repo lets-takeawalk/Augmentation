@@ -4,34 +4,26 @@ import cv2
 import os
 import sys
 import json
-# import argparse
 import numpy as np
 import imgaug as ia
 from glob import glob
 from PIL import Image
 import imgaug.augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
-# parser=argparse.ArgumentParser(description="Argparse")
-# #aurgument추가
-# parser.add_argument('--root_folder', type=str, help='set root folder name', default='image')
-# parser.add_argument('--clsnum', type=str, help='add augmentation class number folder list')
-# parser.add_argument('--aug_count',type=int, help='set augmentation count', default=1000)
-
 ######################################################
-folder_list=[0,1,2]#라벨번호폴더 리스트
-building_number=folder_list[0]
-#building_number=0#라벨번호#cls_num
-img_folder_name='image'#씨드이미지폴더이름(image/0/ -.jpg -.txt)
-aug_count=5#어그멘테이션 갯수 설정
+# folder_list=[0,1,2]#라벨번호폴더 리스트
+# building_number=folder_list[0]
+# #building_number=0#라벨번호#cls_num
+# img_folder_name='image'#씨드이미지폴더이름(image/0/ -.jpg -.txt)
+# aug_count=5#어그멘테이션 갯수 설정
 ######################################################
 
-
-#nodejs에서 argv="0,1,2" "1000" 보내는 경우
-folder_list=list(map(int,sys.argv[1].split(',')))
+#nodejs 메인서버에서 파라메타 argv="건물이름1,건물이름2" "1000" 보내는 경우
+# folder_list=list(map(int,sys.argv[1].split(',')))
+folder_list=sys.argv[1].split(',')
 aug_count=int(sys.argv[2])
 for folder in folder_list:
     augmentation(folder,'image',aug_count)
-
 
 sometimes = lambda aug: iaa.Sometimes(0.5, aug)
 seq = iaa.Sequential(
@@ -109,11 +101,11 @@ seq = iaa.Sequential(
     ],
     random_order=True
 )
-def augmentation(building_number=0,img_folder_name='image',aug_count=1):
+def augmentation(building_name='none',img_folder_name='image',aug_count=1):
 
     THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-    AUG_BFR_IMG_FOLDER=THIS_FOLDER+'/'+img_folder_name+'/'+str(building_number)
-    AUG_AFT_IMG_FOLDER=THIS_FOLDER+'/'+img_folder_name+'/aug_'+str(building_number)
+    AUG_BFR_IMG_FOLDER=THIS_FOLDER+'/'+img_folder_name+'/'+building_name
+    AUG_AFT_IMG_FOLDER=THIS_FOLDER+'/'+img_folder_name+'/aug_'+building_name
     am.create_folder(AUG_AFT_IMG_FOLDER)
 
     #make jpg,txt path info dictionary
@@ -123,7 +115,7 @@ def augmentation(building_number=0,img_folder_name='image',aug_count=1):
     file_name_list=[]
     file_dic={} #{filename: {jpg_path: '', xml_path: ''}}
     for file_path in file_path_list:
-        file_name=file_path.split(str(building_number)+'\\')[1]
+        file_name=file_path.split(building_name+'\\')[1]
         file_name_list.append(file_name)
         file_dic[file_name]={'jpg_path':file_path+'.jpg','txt_path':file_path+'.txt'}
 
