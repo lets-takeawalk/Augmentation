@@ -199,7 +199,7 @@ def pixel_to_yolo(cls_num,bbox_aug):
     ycenter*=dh
     height*=dh
 
-    #(0.0 to 1.0]
+    #case) out of range in (0.0 to 1.0]
     if xcenter+(width/2)>1.0:
         temp=2*(xcenter+(width/2)-1.0)+0.0001
         width-=temp
