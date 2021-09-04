@@ -1,6 +1,7 @@
 import os
 import sys
 import splitfolders
+import configparser
 from glob import glob
 from os.path import isdir
 """
@@ -14,13 +15,19 @@ DATASET_FOLDER = THIS_FOLDER+'/dataset'
 TRAIN_FOLDER = DATASET_FOLDER+'/train'
 VALID_FOLDER = DATASET_FOLDER+'/val'
 
+def file_len(fname):#다크넷라벨안에 있는 건물 개수
+  with open(fname) as f:
+    for i, l in enumerate(f):
+      pass
+  return i + 1
+
 #폴더갯수 확인 후 클래스 갯수 체크
 def get_class_count():
     classes=0
     for f in glob(IMAGE_FOLDER+'/*'):
         if isdir(f):
             classes+=1
-    classes=int(classes/2)
+    classes=classes//2
     print('class count: ',classes)
     return classes
 
@@ -59,4 +66,297 @@ def write_valid_path():
             for jpg_path in full_path:
                 f.write(jpg_path+'\n')
 
-    # with open(DARKNET_FOLDER+'/data/train.txt','w') as f:
+
+"""
+다크넷라벨안에 건물 정보 기록 어떻게 할건지
+메인서버에서 받아서 _darknet.labels에 저장 이 파일 위치는 dataset/_darknet.labels
+"""
+
+def write_config_file():
+    num_classes=file_len(DATASET_FOLDER+'/_darknet.labels')
+    max_batches = num_classes*2000
+    steps1 = .8 * max_batches
+    steps2 = .9 * max_batches
+    steps_str = str(steps1)+','+str(steps2)
+    num_filters = (num_classes + 5) * 3
+    print("writing config for a custom YOLOv4 detector detecting number of classes: " + str(num_classes))
+
+    if os.path.exists(DARKNET_FOLDER+'/cfg/custom-yolov4-tiny-detector.cfg'):
+        os.remove(DARKNET_FOLDER+'/cfg/custom-yolov4-tiny-detector.cfg')
+
+    config = configparser.ConfigParser()
+    config['net']={
+        'batch':'64',
+        'subdivisions':'64',
+        'width':'416',
+        'height':'416',
+        'channels':'3',
+        'momentum':'0.9',
+        'decay':'0.0005',
+        'angle':'0',
+        'saturation':'1.5',
+        'exposure':'1.5',
+        'hue':'.1',
+        'learning_rate':'0.00261',
+        'burn_in':'1000',
+        'max_batche':max_batches,
+        'policy':'steps',
+        'steps':steps_str,
+        'scales':'.1,.1'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'32',
+        'size':'3',
+        'stride':'2',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'64',
+        'size':'3',
+        'stride':'2',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'64',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-1',
+        'groups':'2',
+        'group_id':'1'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'32',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'32',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-1,-2'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'64',
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-6,-1'
+    }
+    config['maxpool']={
+        'size':'2',
+        'stride':'2'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'128',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-1',
+        'groups':'2',
+        'group_id':'1'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'64',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'64',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-1,-2'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'128',
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-6,-1'
+    }
+    config['maxpool']={
+        'size':'2',
+        'stride':'2'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'256',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-1',
+        'groups':'2',
+        'group_id':'1'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'128',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'128',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-1,-2'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'256',
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['route']={
+        'layers':'-6,-1'
+    }
+    config['maxpool']={
+        'size':'2',
+        'stride':'2'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'512',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'256',
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'512',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'filters':num_filters,
+        'activation':'linear'
+    }
+    config['yolo']={
+        'mask':'3,4,5',
+        'anchors':'10,14,  23,27,  37,58,  81,82,  135,169,  344,319',
+        'classes':num_classes,
+        'num':'6',
+        'jitter':'.3',
+        'scale_x_y':'1.05',
+        'cls_normalizer':'1.0',
+        'iou_normalizer':'0.07',
+        'iou_loss':'ciou',
+        'ignore_thresh':'.7',
+        'truth_thresh':'1',
+        'random':'0',
+        'nms_kind':'greedynms',
+        'beta_nms':'0.6'
+    }
+    config['route']={
+        'layers':'-4'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'128',
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['upsample']={
+        'stride':'2'
+    }
+    config['route']={
+        'layers':'-1,23'
+    }
+    config['convolutional']={
+        'batch_normalize':'1',
+        'filters':'256',
+        'size':'3',
+        'stride':'1',
+        'pad':'1',
+        'activation':'leaky'
+    }
+    config['convolutional']={
+        'size':'1',
+        'stride':'1',
+        'pad':'1',
+        'filters':num_filters,
+        'activation':'linear'
+    }
+    config['yolo']={
+        'mask':'1,2,3',
+        'anchors':'10,14,  23,27,  37,58,  81,82,  135,169,  344,319',
+        'classes':num_classes,
+        'num':'6',
+        'jitter':'.3',
+        'scale_x_y':'1.05',
+        'cls_normalizer':'1.0',
+        'iou_normalizer':'0.07',
+        'iou_loss':'ciou',
+        'ignore_thresh':'.7',
+        'truth_thresh':'1',
+        'random':'0',
+        'nms_kind':'greedynms',
+        'beta_nms':'0.6'
+    }
+    
+    with open(DARKNET_FOLDER+'/cfg/custom-yolov4-tiny-detector.cfg','w') as f:
+        config.write(f)
+write_config_file()
