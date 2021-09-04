@@ -13,4 +13,4 @@ lm.write_obj_file(building_cnt)
 lm.split_train_valid()
 lm.write_train_path()
 lm.write_valid_path()
-lm.write_config_file()##config 모듈 같은 섹션은 덮어씌워짐 해결책 찾기
+lm.write_config_file()#config 모듈 같은 섹션은 덮어씌워짐 해결책 찾기
