@@ -21,16 +21,6 @@ def file_len(fname):#다크넷라벨안에 있는 건물 개수
       pass
   return i + 1
 
-#폴더갯수 확인 후 클래스 갯수 체크
-def get_class_count():
-    classes=0
-    for f in glob(IMAGE_FOLDER+'/*'):
-        if isdir(f):
-            classes+=1
-    classes=classes//2
-    print('class count: ',classes)
-    return classes
-
 def write_obj_file(classes):
     with open(DARKNET_FOLDER+'/data/obj.data','w') as f:
         f.write('classes = {}\n'.format(classes))#추가된 이미지 개수
@@ -356,7 +346,6 @@ def write_config_file():
         'nms_kind':'greedynms',
         'beta_nms':'0.6'
     }
-    
+
     with open(DARKNET_FOLDER+'/cfg/custom-yolov4-tiny-detector.cfg','w') as f:
         config.write(f)
-write_config_file()
