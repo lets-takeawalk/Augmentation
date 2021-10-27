@@ -18,5 +18,6 @@ for folder in folder_list:
     for xml in xml_list:
         coordinates=loadXML(xml)
         print(coordinates)
+        # with open()
         break
     break
