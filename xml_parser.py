@@ -8,7 +8,7 @@ roboflow에서 pascal voc 형식으로 추출한 좌표 형식을
 [cls_num xtop,ytop,xbottom,ybottom] 형식의 txt 파일로 변환
 """
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-XML_FOLDER = THIS_FOLDER + './xml_file'
+XML_FOLDER = THIS_FOLDER+'/xml_file'
 folder_list=os.listdir(XML_FOLDER)
 
 print(folder_list)
@@ -16,8 +16,15 @@ print(folder_list)
 for folder in folder_list:
     xml_list=glob(XML_FOLDER+'/'+folder+'/*.xml')
     for xml in xml_list:
-        coordinates=loadXML(xml)
-        print(coordinates)
-        # with open()
+        print(xml)
+        file_name=xml.split()
+        print(file_name)
+        coordinates=loadXML(xml)#return xmin,ymin,xmax,ymax
+        
+        # print(coordinates)
+        #xtop,ytop,xbottom,ybottom
+        #txt파일 만들고 xml 파일 지우기
+        # print(xml)
+
         break
     break
