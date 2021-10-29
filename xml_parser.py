@@ -11,20 +11,20 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 XML_FOLDER = THIS_FOLDER+'/xml_file'
 folder_list=os.listdir(XML_FOLDER)
 
-print(folder_list)
+# print(folder_list)
 
 for folder in folder_list:
     xml_list=glob(XML_FOLDER+'/'+folder+'/*.xml')
     for xml in xml_list:
-        print(xml)
-        file_name=xml.split()
+        file_name=xml.split(folder)[1].lstrip('\\').rstrip('.xml')
         print(file_name)
         coordinates=loadXML(xml)#return xmin,ymin,xmax,ymax
-        
+        with open(XML_FOLDER+'/'+folder+'/'+file_name+'.txt','w') as f:
+            f.write(' '.join(coordinates))
+
+        os.remove(xml)
+        # with open()
         # print(coordinates)
         #xtop,ytop,xbottom,ybottom
         #txt파일 만들고 xml 파일 지우기
         # print(xml)
-
-        break
-    break
