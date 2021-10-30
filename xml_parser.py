@@ -1,4 +1,5 @@
-from augmentation_module_0820 import loadXML, save_label_xml_format
+import xml.etree.ElementTree as Et
+from xml.etree.ElementTree import Element, SubElement, ElementTree
 from glob import glob
 import os
 """
@@ -8,23 +9,36 @@ roboflow에서 pascal voc 형식으로 추출한 좌표 형식을
 [cls_num xtop,ytop,xbottom,ybottom] 형식의 txt 파일로 변환
 """
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-XML_FOLDER = THIS_FOLDER+'/xml_file'
+XML_FOLDER = THIS_FOLDER+'/1030_building'
 folder_list=os.listdir(XML_FOLDER)
 
-# print(folder_list)
+def loadXML(path):#xml파일에서 좌표값 추출 (xmin,ymin,xmax,ymax), filename
+    xml=open(path,'r')
+    tree = Et.parse(xml)
+    root = tree.getroot()
+    file_name = root.find("filename").text
+    object = root.findall("object")
+
+    for _object in object:
+        name = _object.find("name").text
+        bndbox = _object.find("bndbox")
+        xmin = bndbox.find("xmin").text
+        ymin = bndbox.find("ymin").text
+        xmax = bndbox.find("xmax").text
+        ymax = bndbox.find("ymax").text
+
+        # print("class : {}\nxmin : {}\nymin : {}\nxmax : {}\nymax : {}\n".format(name, xmin, ymin, xmax, ymax))
+        return (xmin,ymin,xmax,ymax),file_name
+
 
 for folder in folder_list:
     xml_list=glob(XML_FOLDER+'/'+folder+'/*.xml')
     for xml in xml_list:
-        file_name=xml.split(folder)[1].lstrip('\\').rstrip('.xml')
-        print(file_name)
-        coordinates=loadXML(xml)#return xmin,ymin,xmax,ymax
+        print('xml',xml)
+        coordinates,file_name=loadXML(xml)#return xmin,ymin,xmax,ymax
+        file_name=file_name.rstrip('.jpg')
+        print('file_name',file_name)
         with open(XML_FOLDER+'/'+folder+'/'+file_name+'.txt','w') as f:
             f.write(' '.join(coordinates))
 
         os.remove(xml)
-        # with open()
-        # print(coordinates)
-        #xtop,ytop,xbottom,ybottom
-        #txt파일 만들고 xml 파일 지우기
-        # print(xml)
