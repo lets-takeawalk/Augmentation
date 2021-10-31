@@ -5,7 +5,7 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 IMAGE_DIR = THIS_FOLDER + '/1030_aug'
 file_list=os.listdir(IMAGE_DIR)
 for file in file_list:
-    if file.endswith('.txt'):continue
+    if not file.isdigit():continue
     cls_num=file
     txt_list=glob(IMAGE_DIR+'/'+file+'/*.txt')
     print('cls_num:',cls_num)
