@@ -43,3 +43,5 @@ file_dic[file1]={'jpg_path':'C:/Desktop/folder1/file1.jpg','xml_path':'C:/Deskto
 - Change yolo darknet format class number
 - Use _darknet.labels file. _darknet.labels file have correct class number.
 - If label text file have empty contents, print "Empty txt file: file" and continue process.
+
+# Edit Label Text File
